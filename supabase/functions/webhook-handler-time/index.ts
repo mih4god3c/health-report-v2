@@ -2,12 +2,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
 
-// CONST DICTIONARY TO MAP FORM_ID
-const FORM_ID_MAP = {
-  "ZTi5SsvB": "e925ac5d-baa2-4131-883e-cb01d6d5ab6e"
-}
-
-
 // MOCK PAYLOAD
 // const payload = {
 //   "event_id": "01HVTPCK9Y7RMC70ZPGDPPVS6X",
@@ -2045,51 +2039,124 @@ const FORM_ID_MAP = {
 //   }
 // }
 
-const parsePayload = async (payload:any) => {
+// CONST DICTIONARY TO MAP FORM_ID
+const FORM_ID_MAP = {
+  "Y4AKTX5W": "96b17328-8ba8-4828-b250-d886458ed5d0"
+}
+
+const PRINCIPLES_WITH_QUESTIONS = {
+    "p1": [
+        "How do you handle overlapping priorities from different projects within the same week?",
+        "When planning your week, how do you allocate time to your tasks?",
+        "If an unexpected task arises, how do you integrate it into your schedule?"
+    ],
+    "p2": [
+        "Do you have a written mission statement for your business and personal career?",
+        "How often do you review and adjust your goals?",
+        "How clear are you on your overall purpose in life and business, and how does it guide your daily actions?"
+    ],
+    "p3": [
+        "Do you have a defined process in place for scheduling your week?",
+        "How do you manage follow-ups from meetings, emails, and other communications?",
+        "What procedures do you have in place for meetings?"
+    ],
+    "p4": [
+        "Do you use a habit tracker or similar tool to monitor your daily habits?",
+        "How do you approach the process of instilling new positive habits?",
+        "What method do you use to eradicate habits that negatively impact your time management?"
+    ],
+    "p5": [
+        "How much time do you typically spend on social media and watching TV on a daily basis?",
+        "How often do you practice meditation or any other mindfulness exercises to improve focus?",
+        "How often do you find yourself consciously choosing where to direct your focus during work sessions?"
+    ],
+    "p6": [
+        "How many hours of sleep do you typically get on a nightly basis?",
+        "Are you aware of your circadian rhythms, and do you schedule important tasks when you have the most energy?",
+        "How often do you engage in physical exercise?"
+    ],
+    "p7": [
+        "How do you typically handle your tax preparation?",
+        "How well do you recognize the signs of procrastination in your behavior?",
+        "How would you rate your level of self-discipline in resisting procrastination?This question is required."
+    ],
+    "p8": [
+        "Would you spend 10 hours teaching someone a task that takes you 10 minutes but needs to be done daily? Why?",
+        "How do you decide which tasks to delegate?",
+        "How well do you communicate your expectations when delegating tasks?"
+    ],
+    "p9": [
+        "Which types of technology do you regularly use to manage your time and tasks?",
+        "Have you automated any of your routine tasks using technology?",
+        "How well is technology integrated into your daily workflow?"
+    ],
+    "p10": [
+        "How often do you find yourself fully absorbed in the task at hand?",
+        "In meetings or conversations, how present are you with the other person or people involved?",
+        "How do you handle the feeling of being overwhelmed by future tasks or past regrets?"
+    ]
+};
+
+const parsePayload = (payload: any) => {
 
   const formResponse = payload.form_response;
   const formId = formResponse.form_id;
-  const answers = formResponse.answers;
-  const questions = formResponse.definition.fields;
-  const variables = formResponse.variables
-  const totalWeightedAvg = variables.find((variable:any) => variable.key === "total_weighted_avg")?.number; 
-  const email = answers.find((answer:any) => answer.field.type === "email")?.email;
+  const hiddenAnswers = formResponse.hidden;
+  const email = hiddenAnswers.email;
 
-  const scoreKeys = [
-    "prevention_score",
-    "sleep_score",
-    "nutriton_score",
-    "structure_score",
-    "exercise_score",
-    "weight_management_score",
-    "perils_score",
-    "detoxification_score",
-    "stress_score",
-    "longevity_score"
-  ];
-  
-  const scoreDict = {};
-  scoreKeys.forEach(key => {
-    const variable = variables.find(variable => variable.key === key);
-    scoreDict[key.replace('_score', '')] = variable ? variable.number : null;
-  });
+  const scoreDict = {
+      "prioritization": +hiddenAnswers.p1,
+      "purpose": +hiddenAnswers.p2,
+      "process": +hiddenAnswers.p3,
+      "habits": +hiddenAnswers.p4,
+      "distractions": +hiddenAnswers.p5,
+      "energy": +hiddenAnswers.p6,
+      "procrastination": +hiddenAnswers.p7,
+      "delegation": +hiddenAnswers.p8,
+      "technology": +hiddenAnswers.p9,
+      "mindfulness": formResponse.calculated.score
+  };
+  const totalWeightedAvg = Object.values(scoreDict)
+    .reduce((acc, currValue) => acc += currValue, 0) / 10;
+
+  // Parse out all the answers from the "hidden" object
+  const answerKeyRegex = new RegExp(/p\dq\d$/);
+  const answerKeys = Object.keys(hiddenAnswers)
+    .filter(key => key.match(answerKeyRegex))
 
   // Map question answer pairs to a dictionary with question, answer and type
-  let questionAnswerMap = answers.map((answer:any) => {
-    // Question must not be Full Name or Email
-    const question = questions.find((question:any) => question.id === answer.field.id);
+  let questionAnswerMap = answerKeys.map((answerKey: string) => {
+      const principleKey = answerKey.substring(0, 2);
+      const questionIndex = +answerKey.substring(3) - 1;
 
-    return {
-      question: question.title,
-      answer: answer.choice?.label ?? answer.text,
-      type: question.type,
-    };
-  }
+      return {
+        question: PRINCIPLES_WITH_QUESTIONS[principleKey][questionIndex],
+        answer: hiddenAnswers[answerKey],
+        type: "multiple_choice",
+      };
+    }
   );
 
-  // Remove the questions where question is Email of Full Name
-  questionAnswerMap = questionAnswerMap.filter((qa:any) => qa.question !== "Email" && qa.question !== "Full Name");
+  // Map remaining 3 questions from last principle
+  const mindfulnessAnswers = [
+    {
+      question: PRINCIPLES_WITH_QUESTIONS["p10"][0],
+      answer: formResponse.answers[0].choice.label,
+      type: "multiple_choice",
+    },
+    {
+      question: PRINCIPLES_WITH_QUESTIONS["p10"][1],
+      answer: formResponse.answers[1].choice.label,
+      type: "multiple_choice",
+    },
+    {
+      question: PRINCIPLES_WITH_QUESTIONS["p10"][2],
+      answer: formResponse.answers[2].choice.label,
+      type: "multiple_choice",
+    },
+  ];
 
+  questionAnswerMap = [...questionAnswerMap, ...mindfulnessAnswers];
  
   const data = {
     formId,
@@ -2145,7 +2212,7 @@ serve(async (req) => {
         },
       },
     }
-  );
+  )
 
   try {
 
@@ -2154,7 +2221,7 @@ serve(async (req) => {
     // Read the Typeform-Signature header
     const header = req.headers.get("typeform-signature");
 
-    // Insert the payload to the mock_payloads table
+    // // Insert the payload to the mock_payloads table
     const { data: insertData, error } = await supabase
       .from("mock_payloads")
       .insert([
@@ -2164,16 +2231,16 @@ serve(async (req) => {
         },
       ])
       .select("id");
-
+    
     if (error) {
       throw new Error(error.message);
     }
-
+    
     // Parse the payload
-    // const payloadParsed = await parsePayload(payload);
+    const payloadParsed = parsePayload(payload);
 
     // Insert the payload to the database
-    // await insertToWebhooks(supabase,payload,payloadParsed);
+    await insertToWebhooks(supabase,payload,payloadParsed);
 
     // Return data as response
     return new Response(

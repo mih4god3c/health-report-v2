@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
 
-const generatePrompt = async (supabase: any, promptTemplate: any, principles: any) => {
+const generatePrompt = (promptTemplate: any, principles: any, qaPairs: { type: string, answer: string, question: string }[]) => {
 
   const promptRole = promptTemplate.role;
   const promptGoal = promptTemplate.goal;
@@ -15,7 +15,7 @@ const generatePrompt = async (supabase: any, promptTemplate: any, principles: an
 
   // Create a dictionary to store prompt for each principle, add a key for each principle
   const prompts:any = [];
- 
+
   // Generate a prompt for each principle name
   for (const principle of principles) {
     let promptObj = {
@@ -36,6 +36,12 @@ const generatePrompt = async (supabase: any, promptTemplate: any, principles: an
       }
       prompt += rule + " & ";
     }
+
+    prompt += "Use context from the following question and answer pairs: ";
+    for (const qaPair of qaPairs) {
+      prompt += `${qaPair.question} ${qaPair.answer}`;
+    }
+
     promptObj.prompt_text = prompt;
     prompts.push(promptObj);
   }
@@ -129,7 +135,7 @@ serve(async (req) => {
     const promptTemplate = await getPromptTemplate(supabase, webhook.assesment_id);
 
     // Generate prompt
-    const prompts = await generatePrompt(supabase, promptTemplate, principles);
+    const prompts = await generatePrompt(promptTemplate, principles, webhook.payload_parsed.questionAnswerMap);
 
     
     // Return data as response
