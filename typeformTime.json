@@ -1,0 +1,244 @@
+{
+    "event_id": "01HWA57CTP87XTSZ45PG1XBXFS",
+    "event_type": "form_response",
+    "form_response": {
+      "token": "f8u6w0k5onf0thwt4ff8u6wtsx2vkq10",
+      "ending": {
+        "id": "cGTTwSuxcnG8",
+        "ref": "05d59478-2245-46ca-ba54-1e22a83c2ec8"
+      },
+      "hidden": {
+        "p1": "7",
+        "p2": "4",
+        "p3": "5",
+        "p4": "2",
+        "p5": "2",
+        "p6": "2",
+        "p7": "1",
+        "p8": "6",
+        "p9": "2",
+        "p1q1": "I evaluate the impact and deadline of each project to structure my week.",
+        "p1q2": "I carefully allocate time slots for all important tasks at the start of the week.",
+        "p1q3": "I try to fit it in wherever I can.",
+        "p2q1": "No, but I have a clear idea of my mission.",
+        "p2q2": "Regularly, to ensure alignment with my mission.",
+        "p2q3": "Regularly, to ensure alignment with my mission.",
+        "p3q1": "Somewhat, I plan but not for everything.",
+        "p3q2": "I rely on memory or sporadic notes for follow-ups.",
+        "p3q3": "Every meeting has a written agenda, designated note-taker, and follow-up actions are recorded and tracked.",
+        "p4q1": "I have tried using a habit tracker but did not find it useful.",
+        "p4q2": "I try to start new habits but often do not have a specific plan.",
+        "p4q3": "I do not work on eradicating bad habits.",
+        "p5q1": "1-3 hours.",
+        "p5q2": "Occasionally, when I feel particularly stressed.",
+        "p5q3": "I haven't thought about it much; I just do what feels urgent.",
+        "p6q1": "6-7 hours.",
+        "p6q2": "I am not aware of my circadian rhythms and schedule tasks without considering my energy levels.",
+        "p6q3": "Rarely or never.",
+        "p7q1": "I often need an extension because I start them at the last minute.",
+        "p7q2": "I rarely notice I'm procrastinating until it's too late.",
+        "p7q3": "My self-discipline is inconsistent; I succeed sometimes but not always.",
+        "p8q1": "No, unless it's absolutely necessary, because it seems inefficient.",
+        "p8q2": "I delegate tasks that are less critical, so I can focus on more important ones.",
+        "p8q3": "I'm excellent at articulating expectations, leaving no room for ambiguity.",
+        "p9q1": "I do not use any digital tools for time management.",
+        "p9q2": "I have automated one or two simple tasks.",
+        "p9q3": "I use technology for specific tasks, but it's not fully integrated.",
+        "email": "miha@thecalda.com"
+      },
+      "answers": [
+        {
+          "type": "choice",
+          "field": {
+            "id": "xIwl1ZyKZqBM",
+            "ref": "97e9301c-f930-4a2c-badb-a8fb455f0727",
+            "type": "multiple_choice"
+          },
+          "choice": {
+            "id": "3cRJPWvh8v6e",
+            "ref": "86801a04-2e30-43bc-aec0-378e5f02db21",
+            "label": "Always, I am consistently engaged and focused on what I am doing."
+          }
+        },
+        {
+          "type": "choice",
+          "field": {
+            "id": "zafPdatyOxOg",
+            "ref": "540afbb8-b41d-4ba4-8e6a-a471dba95edc",
+            "type": "multiple_choice"
+          },
+          "choice": {
+            "id": "uWa9aEg98ot0",
+            "ref": "c97e17d1-8e0f-47aa-8cdc-16f4205ce5a6",
+            "label": "I often find my mind wandering to other topics or tasks."
+          }
+        },
+        {
+          "type": "choice",
+          "field": {
+            "id": "lde6xfTuVpx0",
+            "ref": "a392d99d-4039-484b-8eef-11b7b9ef96c3",
+            "type": "multiple_choice"
+          },
+          "choice": {
+            "id": "3zsYB4mXtETT",
+            "ref": "10b05268-f1a3-4a95-bfb3-a80c5f1c1a47",
+            "label": "I frequently get caught up in worries about the future or past issues."
+          }
+        }
+      ],
+      "form_id": "Y4AKTX5W",
+      "outcome": {
+        "id": "bqQhAFtnfwJ7",
+        "title": "https://143d6fdf-5ea0-4cfa-937b-03b91edf8bf9.weweb-preview.io/thank-you?p1={{hidden:p1}}&p2={{hidden:p2}}&p3={{hidden:p3}}&p4={{hidden:p4}}&p5={{hidden:p5}}&p6={{hidden:p6}}&p7={{hidden:p7}}&p8={{hidden:p8}}&p9={{hidden:p9}}&p10={{var:score}}"
+      },
+      "landed_at": "2024-04-25T08:16:14Z",
+      "variables": [
+        {
+          "key": "counter_91121075_25a9_4a93_9830_32173aff0365",
+          "type": "number",
+          "number": 0
+        },
+        {
+          "key": "possible_score",
+          "type": "number",
+          "number": 100
+        },
+        {
+          "key": "score",
+          "type": "number",
+          "number": 3
+        },
+        {
+          "key": "total_score",
+          "type": "number",
+          "number": 0
+        },
+        {
+          "key": "winning_outcome_id",
+          "type": "outcome_id",
+          "outcome_id": "bqQhAFtnfwJ7"
+        }
+      ],
+      "calculated": {
+        "score": 3
+      },
+      "definition": {
+        "id": "Y4AKTX5W",
+        "title": "Time - 10 - Mindfulness",
+        "fields": [
+          {
+            "id": "xIwl1ZyKZqBM",
+            "ref": "97e9301c-f930-4a2c-badb-a8fb455f0727",
+            "type": "multiple_choice",
+            "title": "How often do you find yourself fully absorbed in the task at hand?",
+            "choices": [
+              {
+                "id": "PTz6J05M2Lcn",
+                "ref": "24f8c4ea-afb0-4262-8819-eb540fdf2f9b",
+                "label": "Rarely, I’m often distracted by other thoughts or things."
+              },
+              {
+                "id": "wDdTRKKHkRPG",
+                "ref": "229b4f50-188c-4043-8f3d-f364a613dc09",
+                "label": "Sometimes, but I usually have to remind myself to stay focused."
+              },
+              {
+                "id": "5iTxBPwjHdDq",
+                "ref": "271b82a6-546e-49da-a1c5-1726608c3c07",
+                "label": "Often, I can concentrate on my current activities without much effort."
+              },
+              {
+                "id": "3cRJPWvh8v6e",
+                "ref": "86801a04-2e30-43bc-aec0-378e5f02db21",
+                "label": "Always, I am consistently engaged and focused on what I am doing."
+              }
+            ],
+            "properties": {}
+          },
+          {
+            "id": "zafPdatyOxOg",
+            "ref": "540afbb8-b41d-4ba4-8e6a-a471dba95edc",
+            "type": "multiple_choice",
+            "title": "In meetings or conversations, how present are you with the other person or people involved?",
+            "choices": [
+              {
+                "id": "uWa9aEg98ot0",
+                "ref": "c97e17d1-8e0f-47aa-8cdc-16f4205ce5a6",
+                "label": "I often find my mind wandering to other topics or tasks."
+              },
+              {
+                "id": "NMGIl3F6uAKb",
+                "ref": "00c9879e-3abb-4ef6-bf53-d12d873b8142",
+                "label": "I try to listen but sometimes need to refocus on the conversation."
+              },
+              {
+                "id": "PZpQme5wQII0",
+                "ref": "b8ce9b08-122c-4af3-baaf-9a14c2377a39",
+                "label": "I am usually attentive and engaged in the discussion."
+              },
+              {
+                "id": "YSClsX7Brgoe",
+                "ref": "a22c54e3-d07b-4a00-aa1f-628071ce7aa9",
+                "label": "I am always fully present, actively listening, and engaging with others."
+              }
+            ],
+            "properties": {}
+          },
+          {
+            "id": "lde6xfTuVpx0",
+            "ref": "a392d99d-4039-484b-8eef-11b7b9ef96c3",
+            "type": "multiple_choice",
+            "title": "How do you handle the feeling of being overwhelmed by future tasks or past regrets?",
+            "choices": [
+              {
+                "id": "3zsYB4mXtETT",
+                "ref": "10b05268-f1a3-4a95-bfb3-a80c5f1c1a47",
+                "label": "I frequently get caught up in worries about the future or past issues."
+              },
+              {
+                "id": "i0YtLZgPghqp",
+                "ref": "5d5b329f-a7b0-4f4f-9f91-7e5047a9bd92",
+                "label": "I sometimes struggle with these thoughts, but I try to manage them."
+              },
+              {
+                "id": "oZa0chMwd4lT",
+                "ref": "91f1b874-f20a-4f33-a94f-bd553276bad9",
+                "label": "I often redirect my focus to the present moment when these thoughts arise."
+              },
+              {
+                "id": "VQeNZsABfj7g",
+                "ref": "a479ec71-58dc-4553-83d0-af1d09f673b8",
+                "label": "I consistently focus on the present and rarely let future worries or past regrets affect me."
+              }
+            ],
+            "properties": {}
+          }
+        ],
+        "endings": [
+          {
+            "id": "cGTTwSuxcnG8",
+            "ref": "05d59478-2245-46ca-ba54-1e22a83c2ec8",
+            "type": "url_redirect",
+            "title": "https://143d6fdf-5ea0-4cfa-937b-03b91edf8bf9.weweb-preview.io/thank-you?p1={{hidden:p1}}&p2={{hidden:p2}}&p3={{hidden:p3}}&p4={{hidden:p4}}&p5={{hidden:p5}}&p6={{hidden:p6}}&p7={{hidden:p7}}&p8={{hidden:p8}}&p9={{hidden:p9}}&p10={{var:score}}",
+            "properties": {
+              "redirect_url": "https://143d6fdf-5ea0-4cfa-937b-03b91edf8bf9.weweb-preview.io/thank-you?p1={{hidden:p1}}&p2={{hidden:p2}}&p3={{hidden:p3}}&p4={{hidden:p4}}&p5={{hidden:p5}}&p6={{hidden:p6}}&p7={{hidden:p7}}&p8={{hidden:p8}}&p9={{hidden:p9}}&p10={{var:score}}"
+            }
+          }
+        ],
+        "outcome": {
+          "choices": [
+            {
+              "id": "bqQhAFtnfwJ7",
+              "ref": "74b72cb6-77a5-4361-8e59-df986195c4ec",
+              "title": "https://143d6fdf-5ea0-4cfa-937b-03b91edf8bf9.weweb-preview.io/thank-you?p1={{hidden:p1}}&p2={{hidden:p2}}&p3={{hidden:p3}}&p4={{hidden:p4}}&p5={{hidden:p5}}&p6={{hidden:p6}}&p7={{hidden:p7}}&p8={{hidden:p8}}&p9={{hidden:p9}}&p10={{var:score}}",
+              "counter_variable": "counter_91121075_25a9_4a93_9830_32173aff0365",
+              "thankyou_screen_ref": "05d59478-2245-46ca-ba54-1e22a83c2ec8"
+            }
+          ],
+          "variable": "winning_outcome_id"
+        }
+      },
+      "submitted_at": "2024-04-25T08:16:20Z"
+    }
+  }

@@ -2160,6 +2160,7 @@ serve(async (req) => {
       .insert([
         {
           payload: payload,
+          type: 'TIME'
         },
       ])
       .select("id");
