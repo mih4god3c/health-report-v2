@@ -23,7 +23,7 @@ const sendEmailWithURL = async (email: string, id: number) => {
   const finalUrl = `${baseUrl}/?submissionId=${id}`;
 
   const sendgridUrl = "https://api.sendgrid.com/v3/mail/send";
-  const sendgridApiKey = "<replace-here-with-secret-key>"
+  const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY");
 
   const headers = {
     "Authorization": `Bearer ${sendgridApiKey}`,
@@ -105,7 +105,7 @@ const getPrinciples = async (supabase: any, assesmentId: string) => {
 const parseResponses = (openAiResponses: any) => {
 
   // Make a copy of oepnAiResponses
-  let parsedResponses: any = [];
+  const parsedResponses: any = [];
 
   for (const res of openAiResponses) {
     // Replace escaped backslashes with single backslashes
@@ -211,14 +211,37 @@ serve(async (req) => {
 
     // Generate prompts
     const prompts = await generatePrompts(supabase, record);
+
+    console.log("Generated prompts...");
     
     // Generate response for every prompt in the prompts array, prompt_text is the key
     const openAiResponse = await Promise.all(prompts.map(async (prompt: any) => {
       return generateResponse(prompt.prompt_text);
     }));
 
+    console.log("Got responses...");
+
     // Parse responses and wait for all of them to be parsed
-    const parsedResponses = await parseResponses(openAiResponse);
+    const parsedResponses = parseResponses(openAiResponse);
+
+    console.info("Started summary generation...");
+    const combinedAnalysis = parsedResponses.reduce((analysis: string, response: { analysis: string }) => analysis += ` ${response.analysis}`, "");
+    console.info(`Summary will be generated based on the following combined analysis: ${combinedAnalysis}`);
+
+    console.info("Sending prompt to OpenAI API...");
+
+    const start = Date.now();
+    const reducedAnalysis = await generateResponse(`Write a very short summary, maximum of 28 words of the following analysis: ${combinedAnalysis}`);
+    const duration = Date.now() - start; 
+
+    console.info(`Response generation took ${duration}ms`);
+
+    const { error } = await supabase
+                                  .from("reports")
+                                  .update({ summary: reducedAnalysis })
+                                  .eq("id", report.id);
+
+    if (error) throw error;
 
     // Get principles
     const principles = await getPrinciples(supabase, record.assesment_id);
