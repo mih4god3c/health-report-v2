@@ -102,15 +102,15 @@ const getPrinciples = async (supabase: any, assesmentId: string) => {
   return data;
 }
 
-const parseResponses = async (openAiResponses:any) => {
+const parseResponses = (openAiResponses: any) => {
 
   // Make a copy of oepnAiResponses
-  let parsedResponses:any = [];
+  let parsedResponses: any = [];
 
-  for (let res of openAiResponses) {
+  for (const res of openAiResponses) {
     // Replace escaped backslashes with single backslashes
-    let responseString = res.replace(/\\\\"/g, '\\"');
-    let response = JSON.parse(responseString);
+    const responseString = res.replace(/\\\\"/g, '\\"');
+    const response = JSON.parse(responseString);
 
     // Parse goals and habits to an array of strings
     response.goals = JSON.parse(response.goals);

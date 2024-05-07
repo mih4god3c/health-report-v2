@@ -7,7 +7,7 @@ const FORM_ID_MAP = {
   "ZTi5SsvB": "e925ac5d-baa2-4131-883e-cb01d6d5ab6e"
 }
 
-const parsePayload = async (payload:any) => {
+const parsePayload = (payload:any) => {
 
   const formResponse = payload.form_response;
   const formId = formResponse.form_id;
@@ -114,15 +114,15 @@ serve(async (req) => {
     const payload = await req.json();
 
     // Read the Typeform-Signature header
-    const header = req.headers.get("typeform-signature");
+    // const header = req.headers.get("typeform-signature");
 
     // Insert the payload to the mock_payloads table
-    const { data: insertData, error } = await supabase
+    const { data: insertdata, error } = await supabase
       .from("mock_payloads")
       .insert([
         {
           payload: payload,
-          type: 'HEALTH'
+          type: 'health'
         },
       ])
       .select("id");
@@ -132,10 +132,10 @@ serve(async (req) => {
     }
 
     // Parse the payload
-    // const payloadParsed = await parsePayload(payload);
+    const payloadParsed = parsePayload(payload);
 
     // Insert the payload to the database
-    // await insertToWebhooks(supabase,payload,payloadParsed);
+    await insertToWebhooks(supabase,payload,payloadParsed);
 
     // Return data as response
     return new Response(
