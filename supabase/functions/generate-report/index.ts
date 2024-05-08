@@ -4,6 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import OpenAI from "https://deno.land/x/openai@v4.20.1/mod.ts";
 
 const openai = new OpenAI(Deno.env.get("OPENAI_API_KEY") ?? "");
+const coachingEmail = "gasper@thecalda.com";
 
 const patchWebhook = async (supabase: any, webhookId: string) => {
   // Set the email_sent field to true
@@ -105,6 +106,8 @@ const getPrinciples = async (supabase: any, assesmentId: string) => {
 const parseResponses = (openAiResponses: any) => {
 
   console.debug("Started parsing prompts...");
+
+  console.debug(`Parsing prompts: `, openAiResponses);
 
   // Make a copy of oepnAiResponses
   const parsedResponses: any = [];
@@ -265,11 +268,22 @@ serve(async (req) => {
 
     console.debug(`Inserting subreports took ${Date.now() - insertingSubreportsStart}ms`);
 
-    // Send email with URL
-    // await sendEmailWithURL(record.email, report.id);
+    const emailStart = Date.now();
 
+    console.debug(`Sending email to ${coachingEmail}...`);
+
+    // Send email with URL
+    await sendEmailWithURL(coachingEmail, report.id);
+
+    console.debug(`Email sending took ${Date.now() - emailStart}ms`);
+
+    const patchingWebhookStart = Date.now();
+
+    console.debug("Patching webhook...");
     // Patch webhook
-    // await patchWebhook(supabase, record.id);
+    await patchWebhook(supabase, record.id);
+
+    console.debug(`Patching webhook took ${Date.now() - patchingWebhookStart}ms`);
 
     // Return data as response
     return new Response(
