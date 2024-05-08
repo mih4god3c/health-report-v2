@@ -104,6 +104,8 @@ const getPrinciples = async (supabase: any, assesmentId: string) => {
 
 const parseResponses = (openAiResponses: any) => {
 
+  console.debug("Started parsing prompts...");
+
   // Make a copy of oepnAiResponses
   const parsedResponses: any = [];
 
@@ -212,42 +214,56 @@ serve(async (req) => {
     // Generate prompts
     const prompts = await generatePrompts(supabase, record);
 
-    console.log("Generated prompts...");
+    console.debug("Generated prompts...");
+
+    const subreportsStart = Date.now();
     
+    console.debug("Starting to prompt OpenAI API for subreports...");
+
     // Generate response for every prompt in the prompts array, prompt_text is the key
     const openAiResponse = await Promise.all(prompts.map(async (prompt: any) => {
       return generateResponse(prompt.prompt_text);
     }));
 
-    console.log("Got responses...");
+    console.debug(`Got subreports, took ${Date.now() - subreportsStart}ms`);
 
+    const subreportParsingStart = Date.now();
+
+    console.debug("Parsing reports...");
     // Parse responses and wait for all of them to be parsed
     const parsedResponses = parseResponses(openAiResponse);
 
-    console.info("Started summary generation...");
+    console.debug(`Parsing took ${Date.now() - subreportParsingStart}ms`);
+
+    console.debug("Started summary generation...");
     const combinedAnalysis = parsedResponses.reduce((analysis: string, response: { analysis: string }) => analysis += ` ${response.analysis}`, "");
-    console.info(`Summary will be generated based on the following combined analysis: ${combinedAnalysis}`);
+    console.debug(`Summary will be generated based on the following combined analysis: ${combinedAnalysis}`);
 
-    console.info("Sending prompt to OpenAI API...");
+    console.debug("Sending prompt to OpenAI API...");
 
-    const start = Date.now();
+    const analysisStart = Date.now();
     const reducedAnalysis = await generateResponse(`Write a very short summary, maximum of 28 words of the following analysis: ${combinedAnalysis}`);
-    const duration = Date.now() - start; 
+    const duration = Date.now() - analysisStart; 
 
-    console.info(`Response generation took ${duration}ms`);
+    console.debug(`Response generation took ${duration}ms`);
 
     const { error } = await supabase
-                                  .from("reports")
-                                  .update({ summary: reducedAnalysis })
-                                  .eq("id", report.id);
+                            .from("reports")
+                            .update({ summary: reducedAnalysis })
+                            .eq("id", report.id);
 
     if (error) throw error;
 
     // Get principles
     const principles = await getPrinciples(supabase, record.assesment_id);
 
+    const insertingSubreportsStart = Date.now();
+    console.debug("Inserting subreports...");
+
     // Insert subreports
     await insertSubreports(supabase, parsedResponses, report.id, principles, record.score_dict);
+
+    console.debug(`Inserting subreports took ${Date.now() - insertingSubreportsStart}ms`);
 
     // Send email with URL
     // await sendEmailWithURL(record.email, report.id);
