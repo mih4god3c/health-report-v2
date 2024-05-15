@@ -118,8 +118,8 @@ const parseResponses = (openAiResponses: any) => {
     const response = JSON.parse(responseString);
 
     // Parse goals and habits to an array of strings
-    response.goals = JSON.parse(response.goals);
-    response.habits = JSON.parse(response.habits);
+    response.goals = JSON.parse(response.goals).map((g: string) => { return { id: "", goal: g, added: false }; });
+    response.habits = JSON.parse(response.habits).map((h: string) => { return { id: "", habit: h, added: false }; });
 
     // Remove extra double quotes from results, analysis, highlight and principle
     response.results = response.results.replace(/"/g, "");
@@ -134,7 +134,7 @@ const parseResponses = (openAiResponses: any) => {
     response.principle = response.principle.replace(/\\/g, "");
 
     parsedResponses.push(response);
-  } 
+  }
   return parsedResponses;
 }
 
