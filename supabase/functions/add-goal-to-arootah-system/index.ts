@@ -27,14 +27,10 @@ const internalServerError = (message: string): Response => {
   );
 };
 
-const getMasterplanId = async (supabase: SupabaseClient, authToken: string, reportId: string): Promise<{ masterplanId: string, initialGoalId: string | undefined }> => {
+const getReportEmail = async (supabase: SupabaseClient, reportId: string): Promise<string> => {
   const { data: reportData, error: reportError } = await supabase
     .from("reports")
-    .select(`
-            id,
-            masterplan_id,
-            assessment:assesment_id(name)
-            `)
+    .select("email:webhook_id(email)")
     .eq("id", reportId)
     .single();
 
@@ -42,28 +38,43 @@ const getMasterplanId = async (supabase: SupabaseClient, authToken: string, repo
     throw reportError;
   }
 
-  if (reportData.masterplan_id) {
-    return { masterplanId: reportData.masterplan_id, initialGoalId: undefined };
+  return reportData.email.email as string;
+};
+
+const getMasterplanId = async (supabase: SupabaseClient, authToken: string, reportId: string): Promise<{ masterplanId: string, initialGoalId: string | undefined }> => {
+  const email = await getReportEmail(supabase, reportId);
+  
+  const { data: masterplanIndexData, error: masterplanIndexError } = await supabase
+    .from("masterplan_index")
+    .select("masterplan_id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (masterplanIndexError) {
+    throw masterplanIndexError;
   }
 
-  const newMasterplan = await createMasterplan(reportData.assessment.name, authToken);
+  if (masterplanIndexData && masterplanIndexData.masterplan_id) {
+    return { masterplanId: masterplanIndexData.masterplan_id, initialGoalId: undefined };
+  }
 
-  const { error: reportUpdateError } = await supabase
-    .from("reports")
-    .update({ masterplan_id: newMasterplan.masterplanId })
-    .eq("id", reportId);
+  const newMasterplan = await createMasterplan(authToken);
 
-  if (reportUpdateError) {
-    throw reportUpdateError;
+  const { error: masterplanIndexUpsertError } = await supabase
+    .from("masterplan_index")
+    .upsert({ email: email, masterplan_id: newMasterplan.masterplanId });
+
+  if (masterplanIndexUpsertError) {
+    throw masterplanIndexUpsertError;
   }
 
   return newMasterplan;
 }
 
-const createMasterplan = async (assessmentType: string, authToken: string): Promise<{ masterplanId: string, initialGoalId: string }> => {
+const createMasterplan = async (authToken: string): Promise<{ masterplanId: string, initialGoalId: string }> => {
   // If not, create a new one
   const body = new FormData();
-  body.set("journey", assessmentType === "Health Reports" ? "1138e0b9-7a36-4035-af7b-f5bf387423fb" : "");
+  body.set("journey", "4c6740d3-ce66-4e97-a000-a424452d0fc1"); // UUID is for the 'Life' journey
   const response = await fetch(arootahUserServiceBaseUrl + "/masterplan/", {
     method: "POST",
     body: body,
@@ -73,6 +84,7 @@ const createMasterplan = async (assessmentType: string, authToken: string): Prom
   });
 
   if (!response.ok) {
+    console.error("Response body:", await response.text());
     if (response.status === 403) {
       throw new Error("Bad authentication token provided");
     }
@@ -80,6 +92,8 @@ const createMasterplan = async (assessmentType: string, authToken: string): Prom
   }
 
   const { id: masterplanId, areas } = await response.json();
+
+  // TODO: We might need to update/recreate the area here to name it 'GROWTH'
 
   return { masterplanId, initialGoalId: areas[0].goal.id };
 };
@@ -98,6 +112,7 @@ const createGoal = async (masterplanId: string, authToken: string): Promise<stri
   });
 
   if (!response.ok) {
+    console.error("Response body:", await response.text());
     if (response.status === 403) {
       throw new Error("Bad authentication token provided");
     }
@@ -110,9 +125,10 @@ const createGoal = async (masterplanId: string, authToken: string): Promise<stri
   return newArea.goal.id;
 };
 
-const updateGoal = async (goalId: string, goalName: string, authToken: string): Promise<void> => {
+const updateGoal = async (goalId: string, goalName: string, categoryName: string, authToken: string): Promise<void> => {
   const url = arootahUserServiceBaseUrl + `/goals/${goalId}/`;
   const body = new FormData();
+  body.set("category_name", categoryName);
   body.set("goal_name", goalName);
 
   const response = await fetch(url, {
@@ -124,6 +140,7 @@ const updateGoal = async (goalId: string, goalName: string, authToken: string): 
   });
 
   if (!response.ok) {
+    console.error("Response body:", await response.text());
     if (response.status === 403) {
       throw new Error("Bad authentication token provided");
     }
@@ -191,7 +208,11 @@ Deno.serve(async (req) => {
 
     const { data: subreportData, error: subreportError } = await supabase
                                     .from("subreports")
-                                    .select("*")
+                                    .select(`
+                                            report_id,
+                                            goals,
+                                            principle:principle_id(name)
+                                            `)
                                     .eq("id", subreportId)
                                     .single();
 
@@ -230,7 +251,7 @@ Deno.serve(async (req) => {
 
     console.debug("Starting to update goal in Arootah system...");
 
-    await updateGoal(goalId as string, goal.goal, token);
+    await updateGoal(goalId as string, goal.goal, subreportData.principle.name, token);
 
     console.debug(`Updating goal in Arootah system took ${Date.now() - updateGoalStart}ms`);
 
