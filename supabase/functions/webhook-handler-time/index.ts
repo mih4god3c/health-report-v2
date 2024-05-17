@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
+import { validateSignature } from "../_shared/webhook-signature-validator.ts";
 
 // MOCK PAYLOAD
 // const payload = {
@@ -2195,7 +2196,7 @@ const insertToWebhooks = async (supabase: any, payload: any, payloadParsed:any) 
 
 
 serve(async (req) => {
-
+  console.log('hello world');
   // Enable CORS
   if (req.method === "OPTIONS") {
     return new Response("Ok", { headers: corsHeaders });
@@ -2216,12 +2217,17 @@ serve(async (req) => {
 
   try {
 
-    const payload = await req.json();
+    const payloadRaw = await req.text();
+    const payload = JSON.parse(payloadRaw);
 
     // Read the Typeform-Signature header
-    const header = req.headers.get("typeform-signature");
+    // const header = req.headers.get("typeform-signature");
+	//
+	// if (!header || !validateSignature(payloadRaw, header)) {
+	// 	return new Response(JSON.stringify({ message: "Bad signature" }), { status: 400 });
+	// }
 
-    // // Insert the payload to the mock_payloads table
+    // Insert the payload to the mock_payloads table
     const { data: insertData, error } = await supabase
       .from("mock_payloads")
       .insert([

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
+import { validateSignature } from "../_shared/webhook-signature-validator.ts";
 
 // CONST DICTIONARY TO MAP FORM_ID
 const FORM_ID_MAP = {
@@ -111,10 +112,15 @@ serve(async (req) => {
 
   try {
 
-    const payload = await req.json();
+    const payloadRaw = await req.text();
+    const payload = JSON.parse(payloadRaw);
 
     // Read the Typeform-Signature header
     // const header = req.headers.get("typeform-signature");
+    //
+    // if (!header || !validateSignature(payloadRaw, header)) {
+    //   return new Response(JSON.stringify({ message: "Bad signature" }), { status: 400 });
+    // }
 
     // Insert the payload to the mock_payloads table
     const { data: insertdata, error } = await supabase

@@ -43,7 +43,7 @@ const getReportEmail = async (supabase: SupabaseClient, reportId: string): Promi
 
 const getMasterplanId = async (supabase: SupabaseClient, authToken: string, reportId: string): Promise<{ masterplanId: string, initialGoalId: string | undefined }> => {
   const email = await getReportEmail(supabase, reportId);
-  
+
   const { data: masterplanIndexData, error: masterplanIndexError } = await supabase
     .from("masterplan_index")
     .select("masterplan_id")
