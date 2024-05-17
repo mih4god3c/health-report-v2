@@ -4,28 +4,9 @@
 
 import { SupabaseClient, createClient } from "https://esm.sh/@supabase/supabase-js@2.42.7";
 import { corsHeaders } from "../_shared/cors.ts";
+import { badResponse, internalServerError } from "../_shared/response-helpers.ts";
 
 const arootahUserServiceBaseUrl = Deno.env.get("AROOTAH_USER_SERVICE_URL");
-
-const badResponse = (body: any): Response => {
-  return new Response(
-    JSON.stringify(body),
-    { 
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    }
-  );
-};
-
-const internalServerError = (message: string): Response => {
-  return new Response(
-    JSON.stringify({ message: message }),
-    { 
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    }
-  );
-};
 
 const getReportEmail = async (supabase: SupabaseClient, reportId: string): Promise<string> => {
   const { data: reportData, error: reportError } = await supabase
