@@ -114,7 +114,7 @@ const parseResponses = (openAiResponses: any) => {
 
   for (const res of openAiResponses) {
     // Replace escaped backslashes with single backslashes
-    const responseString = res.replace(/\\\\"/g, '\\"');
+    const responseString = res.replace(/\\\\"/g, '\\"').replace("```json", "");
     const response = JSON.parse(responseString);
 
     // Parse goals and habits to an array of strings
@@ -228,6 +228,15 @@ serve(async (req) => {
       return generateResponse(prompt.prompt_text);
     }));
 
+    const { error: reportUpdateError } = await supabase
+                                                .from("reports")
+                                                .update({ openai_response: JSON.stringify(openAiResponse) })
+                                                .eq("id", report.id);
+
+    if (reportUpdateError) {
+      throw reportUpdateError;
+    }
+
     console.debug(`Got subreports, took ${Date.now() - subreportsStart}ms`);
 
     const subreportParsingStart = Date.now();
@@ -300,6 +309,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error(error);
     return new Response(
       JSON.stringify({
         message: error.message,

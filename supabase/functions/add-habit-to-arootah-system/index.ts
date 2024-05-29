@@ -224,7 +224,7 @@ Deno.serve(async (req) => {
 
     console.debug(`Updating internal habit state took ${Date.now() - updateInternalHabitStateStart}ms`);
 
-    return new Response("Ok");
+    return new Response("Ok", { headers : corsHeaders });
   } catch (error) {
     console.error(error);
     return internalServerError(error.message);

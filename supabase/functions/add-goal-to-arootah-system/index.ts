@@ -253,7 +253,7 @@ Deno.serve(async (req) => {
 
     console.debug(`Updating internal goal state took ${Date.now() - updateInternalGoalStart}ms`);
 
-    return new Response("Ok");
+    return new Response("Ok", { headers: corsHeaders });
   } catch (err) {
     console.error(err);
     return internalServerError(err.message);
