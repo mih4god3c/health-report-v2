@@ -43,7 +43,7 @@ const getMasterplanId = async (supabase: SupabaseClient, authToken: string, repo
 
   const { error: masterplanIndexUpsertError } = await supabase
     .from("masterplan_index")
-    .upsert({ email: email, masterplan_id: newMasterplan.masterplanId });
+    .upsert({ email: email, masterplan_id: newMasterplan.masterplanId }, { onConflict: "email" });
 
   if (masterplanIndexUpsertError) {
     throw masterplanIndexUpsertError;

@@ -11,7 +11,7 @@ export const tryCreateArootahAccount = async (supabase: SupabaseClient, email: s
         email: email,
         password: password,
         user_time_zone: "America/Los_Angeles",
-        user_type: 6
+        user_type: 1
     };
 
     const response = await fetch(AROOTAH_HAT_URL + "/signup/", {
