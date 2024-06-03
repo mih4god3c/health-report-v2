@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from '../_shared/cors.ts'
-import { validateSignature } from "../_shared/webhook-signature-validator.ts";
+import { corsHeaders } from '../_shared/cors.ts';
+import { tryCreateArootahAccount } from "../_shared/arootah-account-helper.ts";
+import { sendNewAccountEmail } from "../_shared/email-helper.ts";
+// import { validateSignature } from "../_shared/webhook-signature-validator.ts";
 
 // MOCK PAYLOAD
 // const payload = {
@@ -2194,6 +2196,8 @@ const insertToWebhooks = async (supabase: any, payload: any, payloadParsed:any) 
   return insertData;
 };
 
+const tryCreateAccountAndSendEmail = async (supabase: SupabaseClient, email: string) => {
+};
 
 serve(async (req) => {
   console.log('hello world');
@@ -2247,6 +2251,13 @@ serve(async (req) => {
 
     // Insert the payload to the database
     await insertToWebhooks(supabase,payload,payloadParsed);
+
+	// Try create new Arootah account
+	const password = await tryCreateArootahAccount(supabase, payloadParsed.email, "Time Management");
+
+	if (password) {
+		await sendNewAccountEmail(payloadParsed.email, password);
+	}
 
     // Return data as response
     return new Response(

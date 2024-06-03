@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
 import { validateSignature } from "../_shared/webhook-signature-validator.ts";
+import { tryCreateArootahAccount } from "../_shared/arootah-account-helper.ts";
+import { sendNewAccountEmail } from "../_shared/email-helper.ts";
 
 // CONST DICTIONARY TO MAP FORM_ID
 const FORM_ID_MAP = {
@@ -142,6 +144,12 @@ serve(async (req) => {
 
     // Insert the payload to the database
     await insertToWebhooks(supabase,payload,payloadParsed);
+
+    const password = await tryCreateArootahAccount(supabase, payloadParsed.email, "Health Assessment");
+
+    if (password) {
+      await sendNewAccountEmail(payloadParsed.email, password);
+    }
 
     // Return data as response
     return new Response(

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
 import OpenAI from "https://deno.land/x/openai@v4.20.1/mod.ts";
+import { sendEmail } from "../_shared/email-helper.ts";
 
 const openai = new OpenAI(Deno.env.get("OPENAI_API_KEY") ?? "");
 const coachingEmail = "gasper@thecalda.com";
@@ -23,13 +24,6 @@ const sendEmailWithURL = async (email: string, id: number) => {
   const baseUrl = "https://insights.arootah.com";
   const finalUrl = `${baseUrl}/?submissionId=${id}`;
 
-  const sendgridUrl = "https://api.sendgrid.com/v3/mail/send";
-  const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY");
-
-  const headers = {
-    "Authorization": `Bearer ${sendgridApiKey}`,
-    "Content-Type": "application/json",
-  };
   const body = {
     "from": {
       "email": "support@arootah.com",
@@ -48,13 +42,8 @@ const sendEmailWithURL = async (email: string, id: number) => {
     ],
     "template_id": "d-0501dcc333324f2295161d5daa1d339f",
   };
-  const response = await fetch(sendgridUrl, {
-    method: "POST",
-    headers: headers,
-    body: JSON.stringify(body),
-  });
-  console.log(response);
-  return response;
+
+  await sendEmail(body);
 }
 
 const insertSubreports = async (supabase: any, subreports: any, reportId: string, principles:any,scoreDict:any) => {
@@ -114,7 +103,7 @@ const parseResponses = (openAiResponses: any) => {
 
   for (const res of openAiResponses) {
     // Replace escaped backslashes with single backslashes
-    const responseString = res.replace(/\\\\"/g, '\\"').replace("```json", "");
+    const responseString = res.replace(/\\\\"/g, '\\"').replace("```json\\n", "");
     const response = JSON.parse(responseString);
 
     // Parse goals and habits to an array of strings
