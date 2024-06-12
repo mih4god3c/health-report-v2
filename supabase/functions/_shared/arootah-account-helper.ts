@@ -1,6 +1,6 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const AROOTAH_HAT_URL = Deno.env.get("AROOTAH_HAT_URL")!; 
+const AROOTAH_AUTH_URL = Deno.env.get("AROOTAH_USER_SERVICE_URL")!; 
 
 // Tries to create an account on the Arootah system. Returns null if password creation failed
 export const tryCreateArootahAccount = async (supabase: SupabaseClient, email: string, typeform: string): Promise<string | undefined> => {
@@ -10,17 +10,18 @@ export const tryCreateArootahAccount = async (supabase: SupabaseClient, email: s
         last_name: "Change me",
         email: email,
         password: password,
-        user_time_zone: "America/Los_Angeles",
-        user_type: 1
+        password_2: password,
     };
 
-    const response = await fetch(AROOTAH_HAT_URL + "/signup/", {
+    const response = await fetch(AROOTAH_AUTH_URL + "/user/", {
         method: "POST",
         body: JSON.stringify(reqBody),
         headers: {
             "Content-Type": "application/json"
         }
     });
+
+    await upsertUserEmail(supabase, email);
 
     if (!response.ok) {
         const resBody = await response.text();
@@ -30,26 +31,7 @@ export const tryCreateArootahAccount = async (supabase: SupabaseClient, email: s
         return undefined;
     }
 
-    const { data, error } = await supabase
-                                    .from("masterplan_index")
-                                    .select("id")
-                                    .eq("email", email)
-                                    .maybeSingle();
-
-    if (error) {
-        throw error;
-    }
-
-    if (!data) {
-        const { error: insertError } = await supabase
-                                                .from("masterplan_index")
-                                                .insert({ email: email });
-
-        if (insertError) {
-            throw insertError;
-        }
-    }
-
+    // Send email to user here
     console.debug(`Email: ${email}, Password: ${password}`);
 
     return password;
@@ -65,4 +47,27 @@ const generatePassword = (): string => {
     }
 
     return pwd;
+};
+
+const upsertUserEmail = async (supabase: SupabaseClient, email: string): Promise<void> => {
+
+    const { data, error } = await supabase
+    .from("masterplan_index")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data) {
+        const { error: insertError } = await supabase
+        .from("masterplan_index")
+        .insert({ email: email });
+
+        if (insertError) {
+            throw insertError;
+        }
+    }
 };

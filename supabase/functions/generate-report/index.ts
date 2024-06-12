@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts'
 import OpenAI from "https://deno.land/x/openai@v4.20.1/mod.ts";
 import { sendEmail } from "../_shared/email-helper.ts";
@@ -92,7 +92,7 @@ const getPrinciples = async (supabase: any, assesmentId: string) => {
   return data;
 }
 
-const parseResponses = (openAiResponses: any) => {
+const parseResponses = async (supabase: SupabaseClient, openAiResponses: any, reportId: string): Promise<any[]> => {
 
   console.debug("Started parsing prompts...");
 
@@ -103,7 +103,16 @@ const parseResponses = (openAiResponses: any) => {
 
   for (const res of openAiResponses) {
     // Replace escaped backslashes with single backslashes
-    const responseString = res.replace(/\\\\"/g, '\\"').replace("```json\\n", "");
+    const responseString = res.replace(/\\\\"/g, '\\"').replaceAll("```json", "").replaceAll("```", "");
+    const { error } = await supabase
+                              .from("reports")
+                              .update({ openai_response_cleaned: responseString })
+                              .eq("id", reportId);
+
+    if (error) {
+      throw error;
+    }
+
     const response = JSON.parse(responseString);
 
     // Parse goals and habits to an array of strings
@@ -232,7 +241,7 @@ serve(async (req) => {
 
     console.debug("Parsing reports...");
     // Parse responses and wait for all of them to be parsed
-    const parsedResponses = parseResponses(openAiResponse);
+    const parsedResponses = await parseResponses(supabase, openAiResponse, report.id);
 
     console.debug(`Parsing took ${Date.now() - subreportParsingStart}ms`);
 

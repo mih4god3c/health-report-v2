@@ -6,7 +6,7 @@ import { SupabaseClient, createClient } from "https://esm.sh/@supabase/supabase-
 import { corsHeaders } from "../_shared/cors.ts";
 import { badResponse, internalServerError } from "../_shared/response-helpers.ts";
 
-const arootahUserServiceBaseUrl = Deno.env.get("AROOTAH_USER_SERVICE_URL");
+const arootahGoalManagerBaseUrl = Deno.env.get("AROOTAH_GOAL_MANAGER_URL");
 
 const getReportEmail = async (supabase: SupabaseClient, reportId: string): Promise<string> => {
   const { data: reportData, error: reportError } = await supabase
@@ -39,24 +39,68 @@ const getMasterplanId = async (supabase: SupabaseClient, authToken: string, repo
     return { masterplanId: masterplanIndexData.masterplan_id, initialGoalId: undefined };
   }
 
-  const newMasterplan = await createMasterplan(authToken);
+  let masterplan = await tryFetchMasterplan(authToken);
+
+  if (masterplan.masterplanId === undefined || masterplan.initialGoalId === undefined) {
+    masterplan = await createMasterplan(authToken);
+  }
 
   const { error: masterplanIndexUpsertError } = await supabase
     .from("masterplan_index")
-    .upsert({ email: email, masterplan_id: newMasterplan.masterplanId }, { onConflict: "email" });
+    .upsert({ email: email, masterplan_id: masterplan.masterplanId }, { onConflict: "email" });
 
   if (masterplanIndexUpsertError) {
     throw masterplanIndexUpsertError;
   }
 
-  return newMasterplan;
+  return masterplan;
 }
+
+const tryFetchMasterplan = async (authToken: string): Promise<{ masterplanId: string | undefined, initialGoalId: string | undefined }> => {
+  // Get domains first
+  const domainsRes = await fetch(arootahGoalManagerBaseUrl + "/domains/", {
+    headers: {
+      Authorization: `Token ${authToken}`
+    }
+  });
+  
+  if (!domainsRes.ok) {
+    console.error("Response body:", await domainsRes.text());
+    if (domainsRes.status === 403) {
+      throw new Error("Bad authentication token provided");
+    }
+    throw new Error("Arootah Goals returned a non-success status code when trying to fetch masterplans");
+  }
+
+  const domains = await domainsRes.json();
+  const healthDomain = domains.find(d => d.name === "Health");
+
+  // Check if domain exists (likely does in every case) and if it has an attached masterplan
+  if (!healthDomain || healthDomain.current_state.id === null) {
+    return { masterplanId: undefined, initialGoalId: undefined };
+  }
+
+  const masterplanId = healthDomain.current_state.id;
+
+  // Get masterplan
+  const masterplanRes = await fetch(arootahGoalManagerBaseUrl + `/masterplan/${masterplanId}/`, {
+    headers: {
+      Authorization: `Token ${authToken}`
+    }
+  });
+  const masterplan = await masterplanRes.json();
+
+  return {
+    masterplanId: masterplanId,
+    initialGoalId: masterplan.areas[0].goal.id
+  };
+};
 
 const createMasterplan = async (authToken: string): Promise<{ masterplanId: string, initialGoalId: string }> => {
   // If not, create a new one
   const body = new FormData();
-  body.set("journey", "4c6740d3-ce66-4e97-a000-a424452d0fc1"); // UUID is for the 'Life' journey
-  const response = await fetch(arootahUserServiceBaseUrl + "/masterplan/", {
+  body.set("journey", "00a3f92b-1b16-4e2c-b759-e32563882145"); // UUID is for the 'Life' journey
+  const response = await fetch(arootahGoalManagerBaseUrl + "/masterplan/", {
     method: "POST",
     body: body,
     headers: {
@@ -80,7 +124,7 @@ const createMasterplan = async (authToken: string): Promise<{ masterplanId: stri
 };
 
 const createGoal = async (masterplanId: string, authToken: string): Promise<string> => {
-  const url = new URL(arootahUserServiceBaseUrl + "/masterplan/generate_area_category/");
+  const url = new URL(arootahGoalManagerBaseUrl + "/masterplan/generate_area_category/");
   url.searchParams.set("masterplan", masterplanId);
   url.searchParams.set("priority", "31");
 
@@ -107,7 +151,7 @@ const createGoal = async (masterplanId: string, authToken: string): Promise<stri
 };
 
 const updateGoal = async (goalId: string, goalName: string, categoryName: string, authToken: string): Promise<void> => {
-  const url = arootahUserServiceBaseUrl + `/goals/${goalId}/`;
+  const url = arootahGoalManagerBaseUrl + `/goals/${goalId}/`;
   const body = new FormData();
   body.set("category_name", categoryName);
   body.set("goal_name", goalName);
@@ -130,7 +174,7 @@ const updateGoal = async (goalId: string, goalName: string, categoryName: string
 };
 
 const checkTokenValidity = async (authToken: string): Promise<boolean> => {
-  const response = await fetch(arootahUserServiceBaseUrl + "/users/my_user/", {
+  const response = await fetch(arootahGoalManagerBaseUrl + "/users/my_user/", {
     headers: {
       "Authorization": "Token " + authToken
     }
