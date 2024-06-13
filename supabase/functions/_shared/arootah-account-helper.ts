@@ -31,9 +31,6 @@ export const tryCreateArootahAccount = async (supabase: SupabaseClient, email: s
         return undefined;
     }
 
-    // Send email to user here
-    console.debug(`Email: ${email}, Password: ${password}`);
-
     return password;
 };
 

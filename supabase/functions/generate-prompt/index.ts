@@ -39,7 +39,7 @@ const generatePrompt = (promptTemplate: any, principles: any, qaPairs: { type: s
 
     prompt += "Use context from the following question and answer pairs: ";
     for (const qaPair of qaPairs) {
-      prompt += `${qaPair.question} ${qaPair.answer}`;
+      prompt += `${qaPair.question} ${qaPair.answer}. `;
     }
 
     promptObj.prompt_text = prompt;

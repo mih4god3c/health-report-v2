@@ -215,6 +215,15 @@ serve(async (req) => {
     // Generate prompts
     const prompts = await generatePrompts(supabase, record);
 
+    const { error: promptSavingError } = await supabase
+                                                .from("reports")
+                                                .update({ openai_prompt: JSON.stringify(prompts) })
+                                                .eq("id", report.id);
+
+    if (promptSavingError) {
+      throw promptSavingError;
+    }
+
     console.debug("Generated prompts...");
 
     const subreportsStart = Date.now();
