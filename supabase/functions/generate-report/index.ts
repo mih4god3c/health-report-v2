@@ -5,7 +5,7 @@ import OpenAI from "https://deno.land/x/openai@v4.20.1/mod.ts";
 import { sendEmail } from "../_shared/email-helper.ts";
 
 const openai = new OpenAI(Deno.env.get("OPENAI_API_KEY") ?? "");
-const coachingEmail = "gasper@thecalda.com";
+const coachingEmail = "coaching@arootah.com";
 
 const patchWebhook = async (supabase: any, webhookId: string) => {
   // Set the email_sent field to true
