@@ -10,15 +10,15 @@ const FORM_ID_MAP = {
   "ZTi5SsvB": "e925ac5d-baa2-4131-883e-cb01d6d5ab6e"
 }
 
-const parsePayload = (payload:any) => {
+const parsePayload = (payload: any) => {
 
   const formResponse = payload.form_response;
   const formId = formResponse.form_id;
   const answers = formResponse.answers;
   const questions = formResponse.definition.fields;
   const variables = formResponse.variables
-  const totalWeightedAvg = variables.find((variable:any) => variable.key === "total_weighted_avg")?.number; 
-  const email = answers.find((answer:any) => answer.field.type === "email")?.email;
+  const totalWeightedAvg = variables.find((variable: any) => variable.key === "total_weighted_avg")?.number;
+  const email = answers.find((answer: any) => answer.field.type === "email")?.email;
 
   const scoreKeys = [
     "prevention_score",
@@ -32,7 +32,7 @@ const parsePayload = (payload:any) => {
     "stress_score",
     "longevity_score"
   ];
-  
+
   const scoreDict = {};
   scoreKeys.forEach(key => {
     const variable = variables.find(variable => variable.key === key);
@@ -40,9 +40,9 @@ const parsePayload = (payload:any) => {
   });
 
   // Map question answer pairs to a dictionary with question, answer and type
-  let questionAnswerMap = answers.map((answer:any) => {
+  let questionAnswerMap = answers.map((answer: any) => {
     // Question must not be Full Name or Email
-    const question = questions.find((question:any) => question.id === answer.field.id);
+    const question = questions.find((question: any) => question.id === answer.field.id);
 
     return {
       question: question.title,
@@ -53,9 +53,9 @@ const parsePayload = (payload:any) => {
   );
 
   // Remove the questions where question is Email of Full Name
-  questionAnswerMap = questionAnswerMap.filter((qa:any) => qa.question !== "Email" && qa.question !== "Full Name");
+  questionAnswerMap = questionAnswerMap.filter((qa: any) => qa.question !== "Email" && qa.question !== "Full Name");
 
- 
+
   const data = {
     formId,
     totalWeightedAvg,
@@ -67,9 +67,9 @@ const parsePayload = (payload:any) => {
 
   return data;
 }
-  
- 
-const insertToWebhooks = async (supabase: any, payload: any, payloadParsed:any) => {
+
+
+const insertToWebhooks = async (supabase: any, payload: any, payloadParsed: any) => {
   // Insert the whole payload to the payload column as text and return the result
   const { data: insertData, error } = await supabase
     .from("webhooks")
@@ -143,7 +143,7 @@ serve(async (req) => {
     const payloadParsed = parsePayload(payload);
 
     // Insert the payload to the database
-    await insertToWebhooks(supabase,payload,payloadParsed);
+    await insertToWebhooks(supabase, payload, payloadParsed);
 
     const password = await tryCreateArootahAccount(supabase, payloadParsed.email, "Health Assessment");
 
