@@ -11,7 +11,7 @@ const parsePayload = (payload: any, assessmentId: string) => {
   const questions = payload.form_response.definition.fields.filter(q => q.type === "multiple_choice");
   const email = payload.form_response.hidden.email;
   const formId = payload.form_response.form_id;
-  const totalWeightedAvg = payload.form_response.calculated.score;
+  const totalWeightedAvg = payload.form_response.variables.find(v => v.key === "total").number;
   const scoreKeyRegex = /p\d{1,2}_score/;
   const variables = payload.form_response.variables.filter(v => scoreKeyRegex.test(v.key)).sort((a, b) => {
     const matchA = +a.key.match(scoreKeyRegex)[0];
