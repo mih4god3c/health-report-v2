@@ -11,7 +11,25 @@ const parsePayload = (payload: any, assessmentId: string) => {
   const questions = payload.form_response.definition.fields.filter(q => q.type === "multiple_choice");
   const email = payload.form_response.hidden.email;
   const formId = payload.form_response.form_id;
-  const totalWeightedAvg = payload.form_response.variables.find(v => v.key === "total").number;
+  const totalWeightedAvg = payload.form_response.calculated.score;
+  const scoreKeyRegex = /p\d{1,2}_score/;
+  const variables = payload.form_response.variables.filter(v => scoreKeyRegex.test(v.key)).sort((a, b) => {
+    const matchA = +a.key.match(scoreKeyRegex)[0];
+    const matchB = +b.key.match(scoreKeyRegex)[0];
+    return matchA - matchB;
+  });
+  const scoreDict = {
+    start_with_mindset: variables[0].number,
+    structure_your_sales_strategy: variables[1].number,
+    empower_sales_through_marketing: variables[2].number,
+    build_rapport: variables[3].number,
+    master_effective_communication: variables[4].number,
+    qualify_leads_and_opportunities: variables[5].number,
+    handle_objections_and_overcome_resistances: variables[6].number,
+    close_the_sale: variables[7].number,
+    assemble_a_winning_team: variables[8].number,
+    transform_operations: variables[9].number
+  };
 
   const questionAnswerMap = answers.map(a => {
     const question = questions.find(q => q.id === a.field.id);
@@ -29,18 +47,7 @@ const parsePayload = (payload: any, assessmentId: string) => {
     email,
     assesmentId: assessmentId,
     questionAnswerMap,
-    scoreDict: {
-      start_with_mindset: 0,
-      structure_your_sales_strategy: 0,
-      empower_sales_through_marketing: 0,
-      build_rapport: 0,
-      master_effective_communication: 0,
-      qualify_leads_and_opportunities: 0,
-      handle_objections_and_overcome_resistances: 0,
-      close_the_sale: 0,
-      assemble_a_winning_team: 0,
-      transform_operations: 0
-    }
+    scoreDict
   };
 };
 
@@ -125,6 +132,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error(error);
     return new Response(
       JSON.stringify({
         message: error.message,

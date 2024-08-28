@@ -20,7 +20,7 @@ const patchWebhook = async (supabase: any, webhookId: string) => {
   return data;
 }
 
-const sendEmailWithURL = async (email: string, id: number) => {
+const sendEmailWithURL = async (email: string, id: string) => {
   const baseUrl = "https://insights.arootah.com";
   const finalUrl = `${baseUrl}/?submissionId=${id}`;
 
@@ -46,11 +46,11 @@ const sendEmailWithURL = async (email: string, id: number) => {
   await sendEmail(body);
 }
 
-const insertSubreports = async (supabase: any, subreports: any, reportId: string, principles:any,scoreDict:any) => {
+const insertSubreports = async (supabase: any, subreports: any, reportId: string, principles: any, scoreDict: any) => {
   // Insert subreports
   for (let subreport of subreports) {
     // Find the principle_id for the subreport
-    const principle = principles.find((p:any) => p.name === subreport.principle);
+    const principle = principles.find((p: any) => p.name === subreport.principle);
     // Find the score for the principle, based on the name_mapping in the scoreDict
     const score = scoreDict[principle.name_mapping];
     // Insert the subreport
@@ -75,7 +75,7 @@ const insertSubreports = async (supabase: any, subreports: any, reportId: string
     }
   }
 
-    return "Subreports inserted";
+  return "Subreports inserted";
 }
 
 const getPrinciples = async (supabase: any, assesmentId: string) => {
@@ -105,9 +105,9 @@ const parseResponses = async (supabase: SupabaseClient, openAiResponses: any, re
     // Replace escaped backslashes with single backslashes
     const responseString = res.replace(/\\\\"/g, '\\"').replaceAll("```json", "").replaceAll("```", "");
     const { error } = await supabase
-                              .from("reports")
-                              .update({ openai_response_cleaned: responseString })
-                              .eq("id", reportId);
+      .from("reports")
+      .update({ openai_response_cleaned: responseString })
+      .eq("id", reportId);
 
     if (error) {
       throw error;
@@ -169,12 +169,12 @@ const createReport = async (supabase: any, record: any) => {
 const generatePrompts = async (supabase: any, record: any) => {
   // Make a call to the generate-prompt edge function
   const { data, error } = await supabase
-  .functions
-  .invoke("generate-prompt", {
-    body: JSON.stringify({
-      "webhook_id": record.id,
+    .functions
+    .invoke("generate-prompt", {
+      body: JSON.stringify({
+        "webhook_id": record.id,
+      })
     })
-  })
 
   if (error) {
     throw new Error(error.message);
@@ -216,9 +216,9 @@ serve(async (req) => {
     const prompts = await generatePrompts(supabase, record);
 
     const { error: promptSavingError } = await supabase
-                                                .from("reports")
-                                                .update({ openai_prompt: JSON.stringify(prompts) })
-                                                .eq("id", report.id);
+      .from("reports")
+      .update({ openai_prompt: JSON.stringify(prompts) })
+      .eq("id", report.id);
 
     if (promptSavingError) {
       throw promptSavingError;
@@ -227,7 +227,7 @@ serve(async (req) => {
     console.debug("Generated prompts...");
 
     const subreportsStart = Date.now();
-    
+
     console.debug("Starting to prompt OpenAI API for subreports...");
 
     // Generate response for every prompt in the prompts array, prompt_text is the key
@@ -236,9 +236,9 @@ serve(async (req) => {
     }));
 
     const { error: reportUpdateError } = await supabase
-                                                .from("reports")
-                                                .update({ openai_response: JSON.stringify(openAiResponse) })
-                                                .eq("id", report.id);
+      .from("reports")
+      .update({ openai_response: JSON.stringify(openAiResponse) })
+      .eq("id", report.id);
 
     if (reportUpdateError) {
       throw reportUpdateError;
@@ -262,14 +262,14 @@ serve(async (req) => {
 
     const analysisStart = Date.now();
     const reducedAnalysis = await generateResponse(`Write a very short summary, maximum of 28 words of the following analysis: ${combinedAnalysis}`);
-    const duration = Date.now() - analysisStart; 
+    const duration = Date.now() - analysisStart;
 
     console.debug(`Response generation took ${duration}ms`);
 
     const { error } = await supabase
-                            .from("reports")
-                            .update({ summary: reducedAnalysis })
-                            .eq("id", report.id);
+      .from("reports")
+      .update({ summary: reducedAnalysis })
+      .eq("id", report.id);
 
     if (error) throw error;
 
